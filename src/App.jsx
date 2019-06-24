@@ -2,19 +2,66 @@ import React from 'react';
 import _ from 'lodash';
 
 
-const Highlighted = ({text = '', highlight = ''}) => {
-   if (!highlight.trim()) {
-     return <span>{text}</span>
+  function getMatches(regex, text) {
+    var results = [];
+    var result;
+    if (regex.global) {
+      while((result = regex.exec(text)) !== null) {
+        results.push(result);
+      }
+    } else {
+      results.push(regex.exec(text));
+    }
+    return results;
+  } 
+
+
+function getElements(text, highlight){
+
+   const inputText = String(text);
+   //console.log('inputText:', inputText);
+
+   const searchWord = String(highlight);
+
+   const regex = new RegExp(`\\b${highlight}\\b`, 'gi');
+
+   //console.log('regex: ', regex);
+   const results = getMatches(regex, inputText);
+
+   let elements = [];
+
+      
+   for (let i = results.length - 1; i >= 0; i-- ) {
+      let result = results[i];
+      //console.log('result:',  result);
+      let prefix = text.substr(0, result.index);
+      let suffix = text.substr(result.index + searchWord.length);
+      //console.log('prefix:',  prefix, 'suffix:', suffix);
+      let element = {prefix, suffix};
+      elements.push(element);
+
+
    }
-   const regex = new RegExp(`(${_.escapeRegExp(highlight)})`, 'gi')
-   //const regex = new RegExp(`${(highlight)}`, 'gi')
-   const parts = text.split(regex)
+
+   return elements;
+
+
+
+}
+
+
+const Highlighted = ({text = '', highlight = ''}) => {
+   
+   const elements = getElements(text, highlight);
+
    return (
-     <span>
-        {parts.filter(part => part).map((part, i) => (
-            regex.test(part) ? <mark key={i}>{part}</mark> : <span key={i}>{part}</span>
-        ))}
-    </span>
+
+         <div>{elements.map((element, index) => (
+            <span key={index}>{element.prefix}<mark>{highlight}</mark>{element.suffix}</span>
+          ))}
+
+          </div>
+
    )
 }
 
